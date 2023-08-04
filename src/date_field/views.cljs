@@ -13,9 +13,12 @@
   []
   (let [date-value (r/atom "")]
     (fn []
+      (prn @date-value)
       [:input {:class ["input"]
                :type "text"
-               :placeholder "DD-MM-YYYY"}])))
+               :placeholder "DD-MM-YYYY"
+               :on-input (fn [x]
+                           (reset! date-value (-> x .-target .-value)))}])))
 
 
 (defn main-panel
