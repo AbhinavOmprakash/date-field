@@ -9,6 +9,16 @@
    "submit"])
 
 
+(defn valid-date-format?
+  [date]
+  (or (empty? date)
+      ;; FYI this is a bad way to validate dates.
+      ;; you should rely on your underlying date-time library
+      ;; for this validation but for the blogpost this is
+      ;; good enough
+      (boolean (re-matches #"[\d]{2}\-[\d]{2}\-[\d]{4}" date))))
+
+
 (defn date-field
   []
   (let [date-value (r/atom "")]
