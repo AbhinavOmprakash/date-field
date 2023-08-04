@@ -1,4 +1,6 @@
-(ns date-field.views)
+(ns date-field.views
+  (:require
+    [reagent.core :as r]))
 
 
 (defn submit-button
@@ -9,9 +11,11 @@
 
 (defn date-field
   []
-  [:input {:class ["input"]
-           :type "text"
-           :placeholder "DD-MM-YYYY"}])
+  (let [date-value (r/atom "")]
+    (fn []
+      [:input {:class ["input"]
+               :type "text"
+               :placeholder "DD-MM-YYYY"}])))
 
 
 (defn main-panel
