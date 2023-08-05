@@ -31,11 +31,13 @@
   (fn [{:keys [value]}]
     (let [valid-input? (valid-date-format? value)]
       (if valid-input? (on-error-resolved) (on-error))
-      [:input {:class ["input" (if valid-input? nil "is-danger")]
-               :type "text"
-               :value value
-               :placeholder "DD-MM-YYYY"
-               :on-input (fn [x] (on-input (-> x .-target .-value)))}])))
+      [:div [:input {:class ["input" (if valid-input? nil "is-danger")]
+                     :type "text"
+                     :value value
+                     :placeholder "DD-MM-YYYY"
+                     :on-input (fn [x] (on-input (-> x .-target .-value)))}]
+       (when (not valid-input?)
+         [:p {:class "help is-danger"} "incorrect input date format, use DD-MM-YYYY"])])))
 
 
 (defn main-panel
