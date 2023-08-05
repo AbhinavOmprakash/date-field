@@ -22,7 +22,8 @@
 
 
 (defn date-field
-  [{:keys [on-error] :or {on-error identity}}]
+  [{:keys [on-error on-error-resolved]
+    :or {on-error identity}}]
   (let [date-value (r/atom "")
         valid? (r/atom true)]
     ;; new
