@@ -40,6 +40,15 @@
          [:p {:class "help is-danger"} "incorrect input date format, use DD-MM-YYYY"])])))
 
 
+(defn date-range
+  []
+  [:div {:class ["my-6" "is-flex is-align-items-center "]}
+   [:p {:class "pr-3"} "from"]
+   [:span {:class "pr-3"} [date-field]]
+   [:p {:class "pr-3"} "to"]
+   [:span {:class "pr-3"} [date-field]]])
+
+
 (defn main-panel
   []
   (let [errors? (r/atom false)
@@ -50,5 +59,6 @@
                     :on-error-resolved (fn [] (reset! errors? false))
                     :value (:date-field @panel-state)
                     :on-input (fn [x] (swap! panel-state assoc :date-field x))}]
+       [date-range]
        [submit-button {:enabled? (not @errors?)
                        :on-click #(reset! panel-state {:date-field ""})}]])))
