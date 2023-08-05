@@ -21,9 +21,15 @@
 
 (defn date-field
   []
-  (let [date-value (r/atom "")]
+  (let [date-value (r/atom "")
+        valid? (r/atom true)]
+    ;; new
+    (add-watch date-value
+               :check-validity
+               (fn [k reference old-value new-value]
+                 (reset! valid? (valid-date-format? new-value))))
     (fn []
-      [:input {:class ["input" (if (valid-date-format? @date-value) nil "is-danger")]
+      [:input {:class ["input" (if @valid? nil "is-danger")]
                :type "text"
                :placeholder "DD-MM-YYYY"
                :on-input (fn [x]
