@@ -41,24 +41,32 @@
 
 
 (defn date-range
-  []
+  [{:keys [start
+           end
+           on-input]}]
   [:div {:class ["my-6" "is-flex is-align-items-center "]}
    [:p {:class "pr-3"} "from"]
-   [:span {:class "pr-3"} [date-field]]
+   [:span {:class "pr-3"} [date-field {:value start
+                                       :on-input (fn [x] (on-input #(assoc % :start x)))}]]
    [:p {:class "pr-3"} "to"]
-   [:span {:class "pr-3"} [date-field]]])
+   [:span {:class "pr-3"} [date-field {:value end
+                                       :on-input (fn [x] (on-input #(assoc % :end x)))}]]])
 
 
 (defn main-panel
   []
   (let [errors? (r/atom false)
-        panel-state (r/atom {:date-field ""})]
+        panel-state (r/atom {:date-field ""
+                             :date-range {:start ""
+                                          :end ""}})]
     (fn []
       [:div {:class ["container" "my-6"]}
        [date-field {:on-error (fn [] (reset! errors? true))
                     :on-error-resolved (fn [] (reset! errors? false))
                     :value (:date-field @panel-state)
                     :on-input (fn [x] (swap! panel-state assoc :date-field x))}]
-       [date-range]
+       [date-range {:start (get-in @panel-state [:date-range :start])
+                    :end (get-in @panel-state [:date-range :end])
+                    :on-input (fn [f] (swap! panel-state update :date-range f))}]
        [submit-button {:enabled? (not @errors?)
                        :on-click #(reset! panel-state {:date-field ""})}]])))
