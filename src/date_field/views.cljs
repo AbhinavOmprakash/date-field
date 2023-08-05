@@ -4,8 +4,10 @@
 
 
 (defn submit-button
-  []
-  [:button {:class ["button" "my-3"  "is-dark"]}
+  [{:keys [enabled?]
+    :or {enabled? true}}]
+  [:button {:class ["button" "my-3"  "is-dark"]
+            :disabled (not enabled?)}
    "submit"])
 
 
@@ -38,6 +40,8 @@
 
 (defn main-panel
   []
-  [:div {:class ["container" "my-6"]}
-   [date-field]
-   [submit-button]])
+  (let [errors? (r/atom false)]
+    (fn []
+      [:div {:class ["container" "my-6"]}
+       [date-field]
+       [submit-button {:enabled? (not @errors?)}]])))
