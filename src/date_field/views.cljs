@@ -22,7 +22,7 @@
 
 
 (defn date-field
-  []
+  [{:keys [on-error] :or {on-error identity}}]
   (let [date-value (r/atom "")
         valid? (r/atom true)]
     ;; new
@@ -30,6 +30,11 @@
                :check-validity
                (fn [k reference old-value new-value]
                  (reset! valid? (valid-date-format? new-value))))
+    (add-watch valid?
+               :on-error ; don't worry about this keyword it's not important
+               (fn [k reference old-value new-value]
+                 (when (false? new-value)
+                   (on-error))))
     (fn []
       [:input {:class ["input" (if @valid? nil "is-danger")]
                :type "text"
@@ -43,5 +48,5 @@
   (let [errors? (r/atom false)]
     (fn []
       [:div {:class ["container" "my-6"]}
-       [date-field]
+       [date-field {:on-error (fn [] (reset! errors? true))}]
        [submit-button {:enabled? (not @errors?)}]])))
