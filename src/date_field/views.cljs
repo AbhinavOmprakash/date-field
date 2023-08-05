@@ -4,10 +4,12 @@
 
 
 (defn submit-button
-  [{:keys [enabled?]
-    :or {enabled? true}}]
+  [{:keys [enabled? on-click]
+    :or {enabled? true
+         on-click identity}}]
   [:button {:class ["button" "my-3"  "is-dark"]
-            :disabled (not enabled?)}
+            :disabled (not enabled?)
+            :on-click on-click}
    "submit"])
 
 
@@ -22,35 +24,29 @@
 
 
 (defn date-field
-  [{:keys [on-error on-error-resolved]
+  [{:keys [on-error on-error-resolved on-input value]
     :or {on-error identity
-         on-error-resolved identity}}]
-  (let [date-value (r/atom "")
-        valid? (r/atom true)]
-    ;; new
-    (add-watch date-value
-               :check-validity
-               (fn [k reference old-value new-value]
-                 (reset! valid? (valid-date-format? new-value))))
-    (add-watch valid?
-               :on-error ; don't worry about this keyword it's not important
-               (fn [k reference old-value new-value]
-                 (if (false? new-value)
-                   (on-error)
-                   (on-error-resolved))))
-    (fn []
-      [:input {:class ["input" (if @valid? nil "is-danger")]
+         on-error-resolved identity
+         on-input identity}}]
+  (fn [{:keys [value]}]
+    (let [valid-input? (valid-date-format? value)]
+      (if valid-input? (on-error-resolved) (on-error))
+      [:input {:class ["input" (if valid-input? nil "is-danger")]
                :type "text"
+               :value value
                :placeholder "DD-MM-YYYY"
-               :on-input (fn [x]
-                           (reset! date-value (-> x .-target .-value)))}])))
+               :on-input (fn [x] (on-input (-> x .-target .-value)))}])))
 
 
 (defn main-panel
   []
-  (let [errors? (r/atom false)]
+  (let [errors? (r/atom false)
+        panel-state (r/atom {:date-field ""})]
     (fn []
       [:div {:class ["container" "my-6"]}
        [date-field {:on-error (fn [] (reset! errors? true))
-                    :on-error-resolved (fn [] (reset! errors? false))}]
-       [submit-button {:enabled? (not @errors?)}]])))
+                    :on-error-resolved (fn [] (reset! errors? false))
+                    :value (:date-field @panel-state)
+                    :on-input (fn [x] (swap! panel-state assoc :date-field x))}]
+       [submit-button {:enabled? (not @errors?)
+                       :on-click #(reset! panel-state {:date-field ""})}]])))
