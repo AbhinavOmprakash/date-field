@@ -48,15 +48,17 @@
            on-error-resolved]}]
   [:div {:class ["my-6" "is-flex is-align-items-center "]}
    [:p {:class "pr-3"} "from"]
-   [:span {:class "pr-3"} [date-field {:value start
-                                       :on-input (fn [x] (on-input #(assoc % :start x)))
-                                       :on-error (fn [] (on-error #(assoc % :start true)))
-                                       :on-error-resolved (fn [] (on-error #(assoc % :start false)))}]]
+   [:span {:class "pr-3"}
+    [date-field {:value start
+                 :on-input (fn [x] (on-input #(assoc % :start x)))
+                 :on-error (fn [] (on-error #(assoc % :start true)))
+                 :on-error-resolved (fn [] (on-error #(assoc % :start false)))}]]
    [:p {:class "pr-3"} "to"]
-   [:span {:class "pr-3"} [date-field {:value end
-                                       :on-input (fn [x] (on-input #(assoc % :end x)))
-                                       :on-error (fn [] (on-error #(assoc % :end true)))
-                                       :on-error-resolved (fn [] (on-error #(assoc % :end false)))}]]])
+   [:span {:class "pr-3"}
+    [date-field {:value end
+                 :on-input (fn [x] (on-input #(assoc % :end x)))
+                 :on-error (fn [] (on-error #(assoc % :end true)))
+                 :on-error-resolved (fn [] (on-error #(assoc % :end false)))}]]])
 
 
 (defn main-panel
@@ -77,6 +79,6 @@
                     :end (get-in @panel-state [:date-range :end])
                     :on-input (fn [f] (swap! panel-state update :date-range f))
                     :on-error (fn [f] (swap! errors? update :date-range f))
-                    :on-error (fn [f] (swap! errors? update :date-range f))}]
+                    :on-error-resolved (fn [f] (swap! errors? update :date-range f))}]
        [submit-button {:enabled? (not @errors?)
                        :on-click #(reset! panel-state {:date-field ""})}]])))
