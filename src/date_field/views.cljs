@@ -23,8 +23,7 @@
   []
   (let [date-value (r/atom "")]
     (fn []
-      (prn @date-value)
-      [:input {:class ["input"]
+      [:input {:class ["input" (if (valid-date-format? @date-value) nil "is-danger")]
                :type "text"
                :placeholder "DD-MM-YYYY"
                :on-input (fn [x]
