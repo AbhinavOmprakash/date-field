@@ -80,14 +80,14 @@
                                           :end ""}})]
     (fn []
       [:div {:class ["container" "my-6"]}
-       [date-field {:on-error (fn [] (swap! errors? assoc :date-field true))
-                    :on-error-resolved (fn [] (swap! errors? assoc :date-field false))
+       [date-field {:on-error (fn [] (swap! errors assoc :date-field true))
+                    :on-error-resolved (fn [] (swap! errors assoc :date-field false))
                     :value (:date-field @panel-state)
                     :on-input (fn [x] (swap! panel-state assoc :date-field x))}]
        [date-range {:start (get-in @panel-state [:date-range :start])
                     :end (get-in @panel-state [:date-range :end])
                     :on-input (fn [f] (swap! panel-state update :date-range f))
-                    :on-error (fn [f] (swap! errors? update :date-range f))
-                    :on-error-resolved (fn [f] (swap! errors? update :date-range f))}]
+                    :on-error (fn [f] (swap! errors update :date-range f))
+                    :on-error-resolved (fn [f] (swap! errors update :date-range f))}]
        [submit-button {:enabled? (not (contains-errors? @errors))
                        :on-click #(reset! panel-state {:date-field ""})}]])))
