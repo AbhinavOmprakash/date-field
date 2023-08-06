@@ -61,11 +61,20 @@
                  :on-error-resolved (fn [] (on-error #(assoc % :end false)))}]]])
 
 
+(defn contains-errors?
+  [m]
+  (not (every? false?
+               (clojure.walk/postwalk (fn [x]
+                                        (when (boolean? x)
+                                          x))
+                                      m))))
+
+
 (defn main-panel
   []
-  (let [errors? (r/atom {:date-field false
-                         :date-range {:start false
-                                      :end false}})
+  (let [errors (r/atom {:date-field false
+                        :date-range {:start false
+                                     :end false}})
         panel-state (r/atom {:date-field ""
                              :date-range {:start ""
                                           :end ""}})]
@@ -80,5 +89,5 @@
                     :on-input (fn [f] (swap! panel-state update :date-range f))
                     :on-error (fn [f] (swap! errors? update :date-range f))
                     :on-error-resolved (fn [f] (swap! errors? update :date-range f))}]
-       [submit-button {:enabled? (not @errors?)
+       [submit-button {:enabled? (not (contains-errors? @errors))
                        :on-click #(reset! panel-state {:date-field ""})}]])))
