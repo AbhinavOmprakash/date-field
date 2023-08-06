@@ -63,11 +63,21 @@
 
 (defn contains-errors?
   [m]
-  (not (every? false?
-               (clojure.walk/postwalk (fn [x]
-                                        (when (boolean? x)
-                                          x))
-                                      m))))
+  (let [child-nodes (fn this
+                      [m]
+                      (reduce (fn [acc el]
+                                (if (map-entry? el)
+                                  (let [value (val el)]
+                                    (cond
+                                      (boolean? value)
+                                      (conj acc value)
+
+                                      (map? value)
+                                      (into acc (this value))))
+                                  el))
+                              []
+                              m))]
+    (not (every? false? (child-nodes m)))))
 
 
 (defn main-panel
@@ -90,4 +100,6 @@
                     :on-error (fn [f] (swap! errors update :date-range f))
                     :on-error-resolved (fn [f] (swap! errors update :date-range f))}]
        [submit-button {:enabled? (not (contains-errors? @errors))
-                       :on-click #(reset! panel-state {:date-field ""})}]])))
+                       :on-click #(reset! panel-state {:date-field ""
+                                                       :date-range {:start ""
+                                                                    :end ""}})}]])))
