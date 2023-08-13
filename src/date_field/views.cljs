@@ -83,6 +83,15 @@
     (not (every? false? (child-nodes m)))))
 
 
+(def panel-state
+  (r/atom {:date-field ""
+           :date-range {:start ""
+                        :end ""}
+           :errors  {:date-field false
+                     :date-range {:start false
+                                  :end false}}}))
+
+
 (def subscriptions (atom {}))
 
 
@@ -93,13 +102,14 @@
     atm))
 
 
-(def panel-state
-  (r/atom {:date-field ""
-           :date-range {:start ""
-                        :end ""}
-           :errors  {:date-field false
-                     :date-range {:start false
-                                  :end false}}}))
+(defn watch-and-call-subscriptions
+  [_key _ref old-value new-value]
+  (for [[subscription-fn subscription-atom] @subscriptions]
+    (when (not= (subscription-fn old-value) (subscription-fn new-value))
+      (reset! subscription-atom (subscription-fn new-value)))))
+
+
+(add-watch panel-state :watch-global-state watch-and-call-subscriptions)
 
 
 (defn main-panel
