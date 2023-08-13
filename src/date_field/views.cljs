@@ -7,6 +7,7 @@
   [{:keys [enabled? on-click]
     :or {enabled? true
          on-click identity}}]
+  (prn "submit-button")
   [:button {:class ["button" "my-3"  "is-dark"]
             :disabled (not enabled?)
             :on-click on-click}
@@ -29,6 +30,7 @@
          on-error-resolved identity
          on-input identity}}]
   (fn [{:keys [value]}]
+    (prn "date field" value)
     (let [valid-input? (valid-date-format? value)]
       (if valid-input? (on-error-resolved) (on-error))
       [:div [:input {:class ["input" (if valid-input? nil "is-danger")]
@@ -46,6 +48,7 @@
            on-input
            on-error
            on-error-resolved]}]
+  (prn "date range" start end)
   [:div {:class ["my-6" "is-flex is-align-items-center "]}
    [:p {:class "pr-3"} "from"]
    [:span {:class "pr-3"}
@@ -80,26 +83,32 @@
     (not (every? false? (child-nodes m)))))
 
 
+(def panel-state
+  (r/atom {:date-field ""
+           :date-range {:start ""
+                        :end ""}}))
+
+
+(def errors
+  (r/atom {:date-field false
+           :date-range {:start false
+                        :end false}}))
+
+
 (defn main-panel
   []
-  (let [errors (r/atom {:date-field false
-                        :date-range {:start false
-                                     :end false}})
-        panel-state (r/atom {:date-field ""
-                             :date-range {:start ""
-                                          :end ""}})]
-    (fn []
-      [:div {:class ["container" "my-6"]}
-       [date-field {:on-error (fn [] (swap! errors assoc :date-field true))
-                    :on-error-resolved (fn [] (swap! errors assoc :date-field false))
-                    :value (:date-field @panel-state)
-                    :on-input (fn [x] (swap! panel-state assoc :date-field x))}]
-       [date-range {:start (get-in @panel-state [:date-range :start])
-                    :end (get-in @panel-state [:date-range :end])
-                    :on-input (fn [f] (swap! panel-state update :date-range f))
-                    :on-error (fn [f] (swap! errors update :date-range f))
-                    :on-error-resolved (fn [f] (swap! errors update :date-range f))}]
-       [submit-button {:enabled? (not (contains-errors? @errors))
-                       :on-click #(reset! panel-state {:date-field ""
-                                                       :date-range {:start ""
-                                                                    :end ""}})}]])))
+  (fn []
+    [:div {:class ["container" "my-6"]}
+     [date-field {:on-error (fn [] (swap! errors assoc :date-field true))
+                  :on-error-resolved (fn [] (swap! errors assoc :date-field false))
+                  :value (:date-field @panel-state)
+                  :on-input (fn [x] (swap! panel-state assoc :date-field x))}]
+     [date-range {:start (get-in @panel-state [:date-range :start])
+                  :end (get-in @panel-state [:date-range :end])
+                  :on-input (fn [f] (swap! panel-state update :date-range f))
+                  :on-error (fn [f] (swap! errors update :date-range f))
+                  :on-error-resolved (fn [f] (swap! errors update :date-range f))}]
+     [submit-button {:enabled? (not (contains-errors? @errors))
+                     :on-click #(reset! panel-state {:date-field ""
+                                                     :date-range {:start ""
+                                                                  :end ""}})}]]))
