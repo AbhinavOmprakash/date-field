@@ -83,6 +83,16 @@
     (not (every? false? (child-nodes m)))))
 
 
+(def subscriptions (atom {}))
+
+
+(defn subscribe
+  [& ks]
+  (let [atm (r/atom nil)]
+    (swap! subscriptions assoc #(get-in % ks) atm)
+    atm))
+
+
 (def panel-state
   (r/atom {:date-field ""
            :date-range {:start ""
