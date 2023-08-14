@@ -84,29 +84,36 @@
 
 
 (def panel-state
-  (r/atom {:date-field ""
-           :date-range {:start ""
-                        :end ""}
-           :errors  {:date-field false
-                     :date-range {:start false
-                                  :end false}}}))
+  (atom {:date-field ""
+         :date-range {:start ""
+                      :end ""}
+         :errors  {:date-field false
+                   :date-range {:start false
+                                :end false}}}))
 
 
-(def subscriptions (atom {}))
+(defonce subscriptions (atom {}))
 
 
 (defn subscribe
-  [& ks]
+  [key_ & ks]
   (let [atm (r/atom nil)]
-    (swap! subscriptions assoc #(get-in % ks) atm)
-    atm))
+    ;; check if a subscription is already registered because react rerenders componnents, and you don't want to register 
+    ;; a new subscription every time
+    (if (contains? @subscriptions key_)
+      (get-in @subscriptions [key_ :state])
+      (do (swap! subscriptions assoc key_ {:f #(get-in % ks)
+                                           :state atm})
+          atm))))
 
 
 (defn watch-and-call-subscriptions
   [_key _ref old-value new-value]
-  (for [[subscription-fn subscription-atom] @subscriptions]
-    (when (not= (subscription-fn old-value) (subscription-fn new-value))
-      (reset! subscription-atom (subscription-fn new-value)))))
+  ;; (prn " watch-and-call-subscriptions")
+  ;; (prn "subs" @subscriptions)
+  (doseq [[_  {:keys [f state]}] @subscriptions]
+    (when (not= (f old-value) (f new-value))
+      (reset! state (f new-value)))))
 
 
 (add-watch panel-state :watch-global-state watch-and-call-subscriptions)
@@ -118,14 +125,14 @@
     [:div {:class ["container" "my-6"]}
      [date-field {:on-error (fn [] (swap! panel-state assoc-in [:errors :date-field] true))
                   :on-error-resolved (fn [] (swap! panel-state assoc-in [:errors :date-field] false))
-                  :value (:date-field @panel-state)
+                  :value @(subscribe :date-field :date-field)
                   :on-input (fn [x] (swap! panel-state assoc :date-field x))}]
-     [date-range {:start (get-in @panel-state [:date-range :start])
-                  :end (get-in @panel-state [:date-range :end])
+     [date-range {:start @(subscribe :date-range-start  :date-range :start)
+                  :end @(subscribe :date-range-start   :date-range :end)
                   :on-input (fn [f] (swap! panel-state update :date-range f))
                   :on-error (fn [f] (swap! panel-state update-in [:errors :date-range] f))
                   :on-error-resolved (fn [f] (swap! panel-state update-in [:errors :date-range] f))}]
-     [submit-button {:enabled? (not (contains-errors? (:errors @panel-state)))
+     [submit-button {:enabled? (not (contains-errors? @(subscribe :errors :errors)))
                      :on-click #(reset! panel-state {:date-field ""
                                                      :date-range {:start ""
                                                                   :end ""}})}]]))
