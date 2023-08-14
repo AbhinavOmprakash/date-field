@@ -7,7 +7,7 @@
 
 
 (defn subscribe
-  [key_ & ks]
+  [key_ ks]
   (let [atm (r/atom nil)]
     ;; check if a subscription is already registered because react rerenders componnents, and you don't want to register 
     ;; a new subscription every time
@@ -16,6 +16,8 @@
       (do (swap! subscriptions assoc key_ {:f #(get-in % ks)
                                            :state atm})
           atm))))
+
+
 (defn submit-button
   [{:keys [enabled? on-click]
     :or {enabled? true
@@ -123,14 +125,15 @@
     [:div {:class ["container" "my-6"]}
      [date-field {:on-error (fn [] (swap! panel-state assoc-in [:errors :date-field] true))
                   :on-error-resolved (fn [] (swap! panel-state assoc-in [:errors :date-field] false))
-                  :value @(subscribe :date-field :date-field)
+                  :value @(subscribe :date-field [:date-field])                                            ; atom 1
                   :on-input (fn [x] (swap! panel-state assoc :date-field x))}]
-     [date-range {:start @(subscribe :date-range-start  :date-range :start)
-                  :end @(subscribe :date-range-start   :date-range :end)
+     [date-range {:start @(subscribe :date-range-start [:date-range :start])                              ; atom 2
+                  :end   @(subscribe :date-range-start [:date-range :end])                                ; atom 3
                   :on-input (fn [f] (swap! panel-state update :date-range f))
                   :on-error (fn [f] (swap! panel-state update-in [:errors :date-range] f))
                   :on-error-resolved (fn [f] (swap! panel-state update-in [:errors :date-range] f))}]
-     [submit-button {:enabled? (not (contains-errors? @(subscribe :errors :errors)))
+     [submit-button {:enabled? (not (contains-errors? @(subscribe :errors [:errors])))                     ; atom 4
                      :on-click #(reset! panel-state {:date-field ""
                                                      :date-range {:start ""
                                                                   :end ""}})}]]))
+
