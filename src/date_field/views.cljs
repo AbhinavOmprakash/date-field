@@ -3,6 +3,19 @@
     [reagent.core :as r]))
 
 
+(defonce subscriptions (atom {}))
+
+
+(defn subscribe
+  [key_ & ks]
+  (let [atm (r/atom nil)]
+    ;; check if a subscription is already registered because react rerenders componnents, and you don't want to register 
+    ;; a new subscription every time
+    (if (contains? @subscriptions key_)
+      (get-in @subscriptions [key_ :state])
+      (do (swap! subscriptions assoc key_ {:f #(get-in % ks)
+                                           :state atm})
+          atm))))
 (defn submit-button
   [{:keys [enabled? on-click]
     :or {enabled? true
@@ -90,21 +103,6 @@
          :errors  {:date-field false
                    :date-range {:start false
                                 :end false}}}))
-
-
-(defonce subscriptions (atom {}))
-
-
-(defn subscribe
-  [key_ & ks]
-  (let [atm (r/atom nil)]
-    ;; check if a subscription is already registered because react rerenders componnents, and you don't want to register 
-    ;; a new subscription every time
-    (if (contains? @subscriptions key_)
-      (get-in @subscriptions [key_ :state])
-      (do (swap! subscriptions assoc key_ {:f #(get-in % ks)
-                                           :state atm})
-          atm))))
 
 
 (defn watch-and-call-subscriptions
