@@ -1,6 +1,6 @@
 {:nrepl {:port 8777}
 
- 
+
 
  :source-paths ["src" "test"]
 
@@ -11,8 +11,8 @@
   [binaryage/devtools "1.0.6"]]
 
  :dev-http
- {8280 "resources/public"
-  8290 "target/browser-test"}
+ {8285 "resources/public"
+  8295 "target/browser-test"}
 
  :builds
  {:app
@@ -26,4 +26,4 @@
    :dev
    {:compiler-options
     {:closure-defines
-     { }}}}}}
+     {}}}}}}
