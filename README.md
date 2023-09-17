@@ -1,7 +1,7 @@
 # date_field
 
-A [re-frame](https://github.com/day8/re-frame) application designed to ... well, that part is up to
-you.
+Code repo for my blogpost [What makes frontend development tricky](https://www.abhinavomprakash.com/posts/what-makes-frontend-development-tricky/)
+See it in action [here](https://abhinavomprakash.github.io/date-field/)
 
 ## Getting Started
 
