@@ -116,9 +116,13 @@
         valid-date-range? (dates-are-ascending? start-date end-date)
         date-field-continuation (fn [hiccup]
                                   (if @(subscribe :date-range-error [:errors :date-range :value])
-                                    (-> hiccup  ; [:div [:input {:class []
-                                        (update-in [1 1 :class] conj "is-danger")
-                                        (conj [:p {:class "help is-danger"} "Incorrect date range. Start date can't be before end date."]))
+                                    (cond-> hiccup  ; [:div [:input {:class []
+                                      true
+                                      (update-in [1 1 :class] conj "is-danger")
+
+                                      (not= (first (last hiccup)) :p)
+                                      (conj [:p {:class "help is-danger"}
+                                             "Incorrect date range. Start date can't be before end date."]))
                                     hiccup))]
     (when (and (not (str/blank? start-date))
                (not (str/blank? end-date))
@@ -130,20 +134,20 @@
     [:div {:class ["my-6" "is-flex is-align-items-center "]}
      [:p {:class "pr-3"} "from"]
      [:span {:class "pr-3"}
-      (date-field-continuation [date-field {:id (keyword (str (name id) "-" "start"))                                ; new
-                                            :subscription-path (conj subscription-path :start)                       ; new
-                                            :on-input (fn [x] (on-input #(assoc % :start x)))
-                                            :on-error (fn [] (on-error #(assoc % :start true)))
-                                            :on-error-resolved (fn [] (on-error-resolved #(assoc % :start false)))
-                                            :continuation date-field-continuation}])]
+      [date-field {:id (keyword (str (name id) "-" "start"))                                ; new
+                   :subscription-path (conj subscription-path :start)                       ; new
+                   :on-input (fn [x] (on-input #(assoc % :start x)))
+                   :on-error (fn [] (on-error #(assoc % :start true)))
+                   :on-error-resolved (fn [] (on-error-resolved #(assoc % :start false)))
+                   :continuation date-field-continuation}]]
      [:p {:class "pr-3"} "to"]
      [:span {:class "pr-3"}
-      (date-field-continuation [date-field {:id (keyword (str (name id) "-" "end"))                                  ; new
-                                            :subscription-path (conj subscription-path :end)                         ; new
-                                            :on-input (fn [x] (on-input #(assoc % :end x)))
-                                            :on-error (fn [] (on-error #(assoc % :end true)))
-                                            :on-error-resolved (fn [] (on-error-resolved #(assoc % :end false)))
-                                            :continuation date-field-continuation}])]]))
+      [date-field {:id (keyword (str (name id) "-" "end"))                                  ; new
+                   :subscription-path (conj subscription-path :end)                         ; new
+                   :on-input (fn [x] (on-input #(assoc % :end x)))
+                   :on-error (fn [] (on-error #(assoc % :end true)))
+                   :on-error-resolved (fn [] (on-error-resolved #(assoc % :end false)))
+                   :continuation date-field-continuation}]]]))
 
 
 (defn watch-and-call-subscriptions
