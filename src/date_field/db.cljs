@@ -1,4 +1,7 @@
 (ns date-field.db)
 
 (def default-db
-  {:name "re-frame"})
+  {:date-field {}
+   :submit-button {}
+   :date-range {}
+   :errors {}})
