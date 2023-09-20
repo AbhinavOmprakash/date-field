@@ -34,7 +34,6 @@
                           (map #(vector k % :error?) v))
                         components-with-ids)
           invalid? (not (every? false? (map #(get-in errors %) paths)))]
-      (prn "invalid?" invalid?)
       invalid?)))
 
 

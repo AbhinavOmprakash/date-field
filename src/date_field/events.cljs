@@ -132,5 +132,5 @@
   ::submit-form-data
   ;; dummy fn
   (fn [db [_ data]]
-    (submit data)
+    (submit ::submit-form-data data)
     db))
