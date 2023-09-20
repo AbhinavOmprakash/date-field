@@ -2,7 +2,7 @@ module Main exposing (..)
 import Browser
 import Html exposing (Html, button, div, text, input)
 import Html.Events exposing (onClick)
-import Html.Attributes exposing (value, placeholder)
+import Html.Attributes exposing (value, placeholder, class)
 
 main =
   Browser.sandbox {init = 0, update = update, view = view}
@@ -17,10 +17,10 @@ update msg model =
 
 
 dateField model=
-  input [placeholder "YYYY-MM-DD"] []
+  input [placeholder "YYYY-MM-DD", class "input"] []
 
 submitButton =
-  button [][text "submit"]
+  button [class "button is-primary"][text "submit"]
 
 view model =
   div []
