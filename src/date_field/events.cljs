@@ -20,28 +20,37 @@
       (boolean (re-matches #"[\d]{4}\-[\d]{2}\-[\d]{2}" date))))
 
 
+(defn date-field-default-state
+  [db id]
+  (-> db
+      (assoc-in [:date-field id :value] "")
+      (assoc-in [:date-field id :invalid?] false)
+      (assoc-in [:date-field id :show-message?] false)
+      (assoc-in [:date-field id :message] "Invalid date format, use YYYY-MM-DD")
+      (assoc-in [:errors :date-field id] {:error? false :type nil})))
+
+
 (rf/reg-event-db
   ::initialize-date-field
   (fn [db [_ id]]
     (assert (false? (contains? (:date-field db) id))
             (str "id:" id " for date-field already exists"))
-    (-> db
-        (assoc-in [:date-field id :value] "")
-        (assoc-in [:date-field id :invalid?] false)
-        (assoc-in [:date-field id :show-message?] false)
-        (assoc-in [:date-field id :message] "Invalid date format, use YYYY-MM-DD")
-        (assoc-in [:errors :date-field id] {:error? false :type nil}))))
+    (date-field-default-state db id)))
 
 
 (rf/reg-event-db
   ::reset-date-field
   (fn [db [_ id]]
-    (-> db
-        (assoc-in [:date-field id :value] "")
-        (assoc-in [:date-field id :invalid?] false)
-        (assoc-in [:date-field id :show-message?] false)
-        (assoc-in [:date-field id :message] "Invalid date format, use YYYY-MM-DD")
-        (assoc-in [:errors :date-field id] {:error? false :type nil}))))
+    (date-field-default-state db id)))
+
+
+(defn date-range-default-state
+  [db id]
+  (-> db
+      (assoc-in [:date-range id :start] "")
+      (assoc-in [:date-range id :end] "")
+      (assoc-in [:date-range id :invalid?] false)
+      (assoc-in [:errors :date-range id] {:error? false :type nil})))
 
 
 (rf/reg-event-db
@@ -49,21 +58,13 @@
   (fn [db [_ id]]
     (assert (false? (contains? (:date-range db) id))
             (str "id:" id " for date-range already exists" db))
-    (-> db
-        (assoc-in [:date-range id :start] "")
-        (assoc-in [:date-range id :end] "")
-        (assoc-in [:date-range id :invalid?] false)
-        (assoc-in [:errors :date-range id] {:error? false :type nil}))))
+    (date-range-default-state db id)))
 
 
 (rf/reg-event-db
   ::reset-date-range
   (fn [db [_ id]]
-    (-> db
-        (assoc-in [:date-range id :start] "")
-        (assoc-in [:date-range id :end] "")
-        (assoc-in [:date-range id :invalid?] false)
-        (assoc-in [:errors :date-range id] {:error? false :type nil}))))
+    (date-range-default-state db id)))
 
 
 (rf/reg-event-db
