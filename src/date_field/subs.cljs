@@ -12,14 +12,12 @@
 (rf/reg-sub
   ::date-field
   (fn [db [_ id]]
-    ;; (prn ::date-field :id id (get-in db [:date-field id]))
     (get-in db [:date-field id])))
 
 
 (rf/reg-sub
   ::date-range
   (fn [db [_ id]]
-    ;; (prn ::date-field :id id (get-in db [:date-field id]))
     (get-in db [:date-range id])))
 
 
@@ -44,3 +42,15 @@
   ::submit-button-disabled?
   (fn [db [_ id]]
     (get-in db [:submit-button id :disabled?])))
+
+
+(rf/reg-sub
+  ::date-range-data
+  (fn [db [_ id]]
+    (select-keys  (get-in db [:date-range id]) [:start :end])))
+
+
+(rf/reg-sub
+  ::date-field-data
+  (fn [db [_ id]]
+    {:date (get-in db [:date-field id :value])}))

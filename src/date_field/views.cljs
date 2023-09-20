@@ -40,17 +40,23 @@
 
 (defn submit-button
   [id]
-  (fn [_]
+  (fn [_ {:keys [on-click]}]
     [:button {:class ["button" "my-3"  "is-dark"]
-              :disabled @(rf/subscribe [::subs/submit-button-disabled? id])}
+              :disabled @(rf/subscribe [::subs/submit-button-disabled? id])
+              :on-click on-click}
      "submit"]))
 
 
 (defn main-panel
   []
   (fn []
-    (let [invalid? @(rf/subscribe [::subs/main-panel-invalid? {:date-field [1]
-                                                               :date-range [1]}])]
+    (let [components {:date-field [1]
+                      :date-range [1]}
+          invalid? @(rf/subscribe [::subs/main-panel-invalid? components])
+          submit-form-data #(rf/dispatch [::events/submit-form-data components])
+          reset-components #(do
+                              (rf/dispatch [::events/reset-date-field 1])
+                              (rf/dispatch [::events/reset-date-range 1]))]
       (if invalid?
         (rf/dispatch [::events/disable-submit-button 1])
         (rf/dispatch [::events/enable-submit-button 1]))
@@ -58,4 +64,4 @@
       [:div {:class ["container" "my-6"]}
        [date-field 1]
        [date-range 1]
-       [submit-button 1]])))
+       [submit-button 1 {:on-click #(do (submit-form-data) (reset-components))}]])))

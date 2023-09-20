@@ -34,10 +34,31 @@
 
 
 (rf/reg-event-db
+  ::reset-date-field
+  (fn [db [_ id]]
+    (-> db
+        (assoc-in [:date-field id :value] "")
+        (assoc-in [:date-field id :invalid?] false)
+        (assoc-in [:date-field id :show-message?] false)
+        (assoc-in [:date-field id :message] "Invalid date format, use YYYY-MM-DD")
+        (assoc-in [:errors :date-field id] {:error? false :type nil}))))
+
+
+(rf/reg-event-db
   ::initialize-date-range
   (fn [db [_ id]]
     (assert (false? (contains? (:date-range db) id))
             (str "id:" id " for date-range already exists" db))
+    (-> db
+        (assoc-in [:date-range id :start] "")
+        (assoc-in [:date-range id :end] "")
+        (assoc-in [:date-range id :invalid?] false)
+        (assoc-in [:errors :date-range id] {:error? false :type nil}))))
+
+
+(rf/reg-event-db
+  ::reset-date-range
+  (fn [db [_ id]]
     (-> db
         (assoc-in [:date-range id :start] "")
         (assoc-in [:date-range id :end] "")
@@ -102,3 +123,14 @@
   ::enable-submit-button
   (fn [db [_ id]]
     (assoc-in db [:submit-button id :disabled?] false)))
+
+
+(def submit prn)
+
+
+(rf/reg-event-db
+  ::submit-form-data
+  ;; dummy fn
+  (fn [db [_ data]]
+    (submit data)
+    db))
