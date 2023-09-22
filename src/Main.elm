@@ -1,27 +1,33 @@
 module Main exposing (..)
 import Browser
 import Html exposing (Html, button, div, text, input)
-import Html.Events exposing (onClick)
+import Html.Events exposing (onClick, onInput)
 import Html.Attributes exposing (value, placeholder, class)
 
-main =
-  Browser.sandbox {init = 0, update = update, view = view}
 
-type Msg = Increment | Decrement
+type alias Model =
+  { text : String }
+
+type Msg = Clicked String
 
 update msg model =
   case msg of
-  Increment -> model + 1
-
-  Decrement -> model - 1
-
+    Clicked newText -> 
+      { model | text = newText}
 
 dateField model=
-  input [placeholder "YYYY-MM-DD", class "input"] []
+  input [placeholder "YYYY-MM-DD"
+         , class "input"
+         , onInput Clicked
+         , value model.text] []
 
 submitButton =
-  button [class "button is-primary"][text "submit"]
+  button [class "button is-dark"][text "submit"]
 
 view model =
-  div []
+  div [class "container"]
   [dateField model, submitButton]
+
+
+main =
+  Browser.sandbox {init = {text = ""}, update = update, view = view}
