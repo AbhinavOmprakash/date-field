@@ -3,7 +3,7 @@ module Main exposing (..)
 import Browser
 import Debug exposing (log)
 import Html exposing (Html, button, div, input, p, span, text)
-import Html.Attributes exposing (class, placeholder, value)
+import Html.Attributes exposing (class, disabled, placeholder, value)
 import Html.Events exposing (onClick, onInput)
 import Regex
 
@@ -47,9 +47,16 @@ defaultDateFieldMsg =
     "InvalidDateFormat, use YYYY-MM-DD"
 
 
+type FormValidation
+    = InvalidForm
+    | ValidForm
+    | EmptyForm
+
+
 type alias Model =
     { date : DateField
     , dateRange : DateRange
+    , formValidation : FormValidation
     }
 
 
@@ -164,20 +171,42 @@ defaultDateRange =
         EmptyDateRange
 
 
+validateForm : Model -> Model
+validateForm model =
+    if
+        (model.date.dateValidation == ValidDate)
+            && (model.dateRange.dateRangeValidation == ValidDateRange)
+    then
+        { model | formValidation = ValidForm }
+
+    else if
+        (model.date.dateValidation == EmptyDate)
+            && (model.dateRange.dateRangeValidation == EmptyDateRange)
+    then
+        { model | formValidation = EmptyForm }
+
+    else
+        { model | formValidation = InvalidForm }
+
+
 update : Msg -> Model -> Model
 update msg model =
-    case msg of
-        UpdateDate newDate ->
-            { model | date = DateField newDate (validateDate newDate) model.date.onClick model.date.message }
+    let
+        newModel =
+            case msg of
+                UpdateDate newDate ->
+                    { model | date = DateField newDate (validateDate newDate) model.date.onClick model.date.message }
 
-        UpdateStartDate newDate ->
-            { model | dateRange = updateStartDate newDate model.dateRange }
+                UpdateStartDate newDate ->
+                    { model | dateRange = updateStartDate newDate model.dateRange }
 
-        UpdateEndDate newDate ->
-            { model | dateRange = updateEndDate newDate model.dateRange }
+                UpdateEndDate newDate ->
+                    { model | dateRange = updateEndDate newDate model.dateRange }
 
-        SubmitFormData ->
-            { model | date = defaultDateField UpdateDate, dateRange = defaultDateRange }
+                SubmitFormData ->
+                    { model | date = defaultDateField UpdateDate, dateRange = defaultDateRange }
+    in
+    validateForm newModel
 
 
 dateField : DateField -> Html Msg
@@ -210,10 +239,11 @@ dateRange model =
         ]
 
 
-submitButton =
+submitButton isDisabled =
     button
         [ class "button is-dark"
         , onClick SubmitFormData
+        , disabled isDisabled
         ]
         [ text "submit" ]
 
@@ -222,7 +252,7 @@ view model =
     div [ class "container" ]
         [ dateField model.date
         , dateRange model.dateRange
-        , submitButton
+        , submitButton (not (model.formValidation==ValidForm))
         ]
 
 
@@ -231,6 +261,7 @@ main =
         { init =
             { date = defaultDateField UpdateDate
             , dateRange = defaultDateRange
+            , formValidation = EmptyForm
             }
         , update = update
         , view = view
