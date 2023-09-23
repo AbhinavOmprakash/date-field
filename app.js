@@ -5339,6 +5339,51 @@ var $author$project$Main$validateDate = function (date) {
 	var dateStatus = (date === '') ? $author$project$Main$EmptyDate : ((!$author$project$Main$isValidDateFormat(date)) ? $author$project$Main$InvalidDateFormat : $author$project$Main$ValidDate);
 	return dateStatus;
 };
+var $author$project$Main$InvalidDateRange = {$: 'InvalidDateRange'};
+var $author$project$Main$ValidDateRange = {$: 'ValidDateRange'};
+var $author$project$Main$ValidatingDateFields = {$: 'ValidatingDateFields'};
+var $author$project$Main$validateDateRange = F2(
+	function (startDate, endDate) {
+		var startDateValid = _Utils_eq(startDate.dateValidation, $author$project$Main$ValidDate);
+		var endDateValid = _Utils_eq(endDate.dateValidation, $author$project$Main$ValidDate);
+		var validRange = (startDateValid && endDateValid) ? (_Utils_cmp(startDate.value, endDate.value) < 1) : true;
+		return (startDateValid && endDateValid) ? ((_Utils_cmp(startDate.value, endDate.value) < 1) ? $author$project$Main$ValidDateRange : $author$project$Main$InvalidDateRange) : $author$project$Main$ValidatingDateFields;
+	});
+var $author$project$Main$updateEndDate = F2(
+	function (newDate, daterange) {
+		var dateRangeOld = daterange;
+		var oldEndDate = dateRangeOld.endDate;
+		var newEndDate = _Utils_update(
+			oldEndDate,
+			{
+				dateValidation: $author$project$Main$validateDate(newDate),
+				value: newDate
+			});
+		var dateRangeNew = _Utils_update(
+			dateRangeOld,
+			{
+				dateRangeValidation: A2($author$project$Main$validateDateRange, dateRangeOld.startDate, newEndDate),
+				endDate: newEndDate
+			});
+		return dateRangeNew;
+	});
+var $author$project$Main$updateStartDate = F2(
+	function (newDate, daterange) {
+		var oldStartDate = daterange.startDate;
+		var newStartDate = _Utils_update(
+			oldStartDate,
+			{
+				dateValidation: $author$project$Main$validateDate(newDate),
+				value: newDate
+			});
+		var dateRangeNew = _Utils_update(
+			daterange,
+			{
+				dateRangeValidation: A2($author$project$Main$validateDateRange, daterange.startDate, newStartDate),
+				startDate: newStartDate
+			});
+		return dateRangeNew;
+	});
 var $author$project$Main$update = F2(
 	function (msg, model) {
 		switch (msg.$) {
@@ -5355,36 +5400,18 @@ var $author$project$Main$update = F2(
 					});
 			case 'UpdateStartDate':
 				var newDate = msg.a;
-				var dateRangeOld = model.dateRange;
-				var oldStartDate = dateRangeOld.startDate;
-				var newStartDate = _Utils_update(
-					oldStartDate,
-					{
-						dateValidation: $author$project$Main$validateDate(newDate),
-						value: newDate
-					});
-				var dateRangeNew = _Utils_update(
-					dateRangeOld,
-					{startDate: newStartDate});
 				return _Utils_update(
 					model,
-					{dateRange: dateRangeNew});
+					{
+						dateRange: A2($author$project$Main$updateStartDate, newDate, model.dateRange)
+					});
 			default:
 				var newDate = msg.a;
-				var dateRangeOld = model.dateRange;
-				var oldEndDate = dateRangeOld.endDate;
-				var newEndDate = _Utils_update(
-					oldEndDate,
-					{
-						dateValidation: $author$project$Main$validateDate(newDate),
-						value: newDate
-					});
-				var dateRangeNew = _Utils_update(
-					dateRangeOld,
-					{endDate: newEndDate});
 				return _Utils_update(
 					model,
-					{dateRange: dateRangeNew});
+					{
+						dateRange: A2($author$project$Main$updateEndDate, newDate, model.dateRange)
+					});
 		}
 	});
 var $elm$json$Json$Encode$string = _Json_wrap;

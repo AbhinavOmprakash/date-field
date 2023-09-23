@@ -15,10 +15,11 @@ type DateStatus
 
 type DateRangeValidation 
   = EmptyDateRange
-  | InvalidStartDate
-  | InvalidEndDate
+  | ValidDateRange
   | InvalidDateRange
-
+  | ValidatingDateFields
+  -- | InvalidStartDate
+  -- | InvalidEndDate
 
 type LastEditedDateRangeField 
   = StartDate
@@ -64,6 +65,41 @@ validateDate date =
   in 
     dateStatus
 
+validateDateRange: DateField -> DateField -> DateRangeValidation
+validateDateRange startDate endDate  =
+  let 
+      startDateValid = (startDate.dateValidation == ValidDate)
+      endDateValid = (endDate.dateValidation == ValidDate)
+      validRange = (if (startDateValid && endDateValid) 
+                       then (startDate.value <= endDate.value) 
+                       else True)
+  in 
+  if (startDateValid && endDateValid) 
+      then 
+        if (startDate.value <= endDate.value) 
+          then ValidDateRange
+          else InvalidDateRange
+  else ValidatingDateFields
+
+updateStartDate : String -> DateRange -> DateRange
+updateStartDate newDate daterange =
+    let     
+        oldStartDate =  daterange.startDate 
+        newStartDate = { oldStartDate | value = newDate, dateValidation = (validateDate newDate)}
+        dateRangeNew = { daterange | startDate = newStartDate, dateRangeValidation = (validateDateRange daterange.startDate newStartDate)} 
+      in
+       dateRangeNew
+
+updateEndDate : String -> DateRange -> DateRange
+updateEndDate newDate daterange =
+      let 
+          dateRangeOld = daterange
+          oldEndDate = dateRangeOld.endDate 
+          newEndDate = {oldEndDate | value = newDate, dateValidation = (validateDate newDate)}
+          dateRangeNew = {dateRangeOld | endDate = newEndDate, dateRangeValidation = (validateDateRange dateRangeOld.startDate newEndDate)} 
+      in
+      dateRangeNew 
+
 update : Msg -> Model -> Model 
 update msg model =
   case msg of
@@ -71,21 +107,10 @@ update msg model =
       { model | date = DateField newDate (validateDate newDate) model.date.onClick }
 
     UpdateStartDate newDate -> 
-      let 
-          dateRangeOld = model.dateRange
-          oldStartDate = dateRangeOld.startDate 
-          newStartDate = {oldStartDate | value = newDate, dateValidation = (validateDate newDate)}
-          dateRangeNew = {dateRangeOld | startDate = newStartDate} 
-      in
-      { model | dateRange = dateRangeNew}
+      {model | dateRange = (updateStartDate newDate model.dateRange)}
+
     UpdateEndDate newDate -> 
-      let 
-          dateRangeOld = model.dateRange
-          oldEndDate = dateRangeOld.endDate 
-          newEndDate = {oldEndDate | value = newDate, dateValidation = (validateDate newDate)}
-          dateRangeNew = {dateRangeOld | endDate = newEndDate} 
-      in
-      { model | dateRange = dateRangeNew}
+      {model | dateRange = (updateEndDate newDate model.dateRange)}
 
 dateField: DateField -> Html Msg
 dateField datefield =
