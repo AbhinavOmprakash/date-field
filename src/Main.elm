@@ -50,7 +50,7 @@ dateField model=
              , class "input"
              , onInput UpdateDate
              , value model.date] [],
-       p [][ if model.dateValidtion == InvalidDateFormat then text "InvalidDateFormat, use YYYY-MM-DD" 
+       p [class "help is-danger"][ if model.dateValidtion == InvalidDateFormat then text "InvalidDateFormat, use YYYY-MM-DD" 
              else text ""]]
 
 submitButton =
