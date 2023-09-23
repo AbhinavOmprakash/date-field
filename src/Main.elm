@@ -252,7 +252,7 @@ view model =
     div [ class "container" ]
         [ dateField model.date
         , dateRange model.dateRange
-        , submitButton (not (model.formValidation==ValidForm))
+        , submitButton (not (model.formValidation == ValidForm))
         ]
 
 
