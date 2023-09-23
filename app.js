@@ -4471,7 +4471,17 @@ var _Regex_splitAtMost = F3(function(n, re, str)
 });
 
 var _Regex_infinity = Infinity;
+var $author$project$Main$DateField = F2(
+	function (value, dateValidtion) {
+		return {dateValidtion: dateValidtion, value: value};
+	});
+var $author$project$Main$DateRange = F6(
+	function (startDate, endDate, startDateValidation, endDateValidation, dateRangeValidation, lastEdited) {
+		return {dateRangeValidation: dateRangeValidation, endDate: endDate, endDateValidation: endDateValidation, lastEdited: lastEdited, startDate: startDate, startDateValidation: startDateValidation};
+	});
 var $author$project$Main$EmptyDate = {$: 'EmptyDate'};
+var $author$project$Main$EmptyDateRange = {$: 'EmptyDateRange'};
+var $author$project$Main$NoField = {$: 'NoField'};
 var $elm$core$Basics$EQ = {$: 'EQ'};
 var $elm$core$Basics$GT = {$: 'GT'};
 var $elm$core$Basics$LT = {$: 'LT'};
@@ -5316,19 +5326,21 @@ var $author$project$Main$isValidDateFormat = function (s) {
 		s);
 };
 var $elm$core$Basics$not = _Basics_not;
-var $author$project$Main$validateDate = function (model) {
-	var dateStatus = (model.date === '') ? $author$project$Main$EmptyDate : ((!$author$project$Main$isValidDateFormat(model.date)) ? $author$project$Main$InvalidDateFormat : $author$project$Main$ValidDate);
-	return _Utils_update(
-		model,
-		{dateValidtion: dateStatus});
+var $author$project$Main$validateDate = function (date) {
+	var dateStatus = (date === '') ? $author$project$Main$EmptyDate : ((!$author$project$Main$isValidDateFormat(date)) ? $author$project$Main$InvalidDateFormat : $author$project$Main$ValidDate);
+	return dateStatus;
 };
 var $author$project$Main$update = F2(
 	function (msg, model) {
 		var newDate = msg.a;
-		return $author$project$Main$validateDate(
-			_Utils_update(
-				model,
-				{date: newDate}));
+		return _Utils_update(
+			model,
+			{
+				date: A2(
+					$author$project$Main$DateField,
+					newDate,
+					$author$project$Main$validateDate(newDate))
+			});
 	});
 var $elm$json$Json$Encode$string = _Json_wrap;
 var $elm$html$Html$Attributes$stringProperty = F2(
@@ -5383,7 +5395,7 @@ var $elm$html$Html$Attributes$placeholder = $elm$html$Html$Attributes$stringProp
 var $elm$virtual_dom$VirtualDom$text = _VirtualDom_text;
 var $elm$html$Html$text = $elm$virtual_dom$VirtualDom$text;
 var $elm$html$Html$Attributes$value = $elm$html$Html$Attributes$stringProperty('value');
-var $author$project$Main$dateField = function (model) {
+var $author$project$Main$dateField = function (datefield) {
 	return A2(
 		$elm$html$Html$div,
 		_List_Nil,
@@ -5396,7 +5408,7 @@ var $author$project$Main$dateField = function (model) {
 						$elm$html$Html$Attributes$placeholder('YYYY-MM-DD'),
 						$elm$html$Html$Attributes$class('input'),
 						$elm$html$Html$Events$onInput($author$project$Main$UpdateDate),
-						$elm$html$Html$Attributes$value(model.date)
+						$elm$html$Html$Attributes$value(datefield.value)
 					]),
 				_List_Nil),
 				A2(
@@ -5407,7 +5419,7 @@ var $author$project$Main$dateField = function (model) {
 					]),
 				_List_fromArray(
 					[
-						_Utils_eq(model.dateValidtion, $author$project$Main$InvalidDateFormat) ? $elm$html$Html$text('InvalidDateFormat, use YYYY-MM-DD') : $elm$html$Html$text('')
+						_Utils_eq(datefield.dateValidtion, $author$project$Main$InvalidDateFormat) ? $elm$html$Html$text('InvalidDateFormat, use YYYY-MM-DD') : $elm$html$Html$text('')
 					]))
 			]));
 };
@@ -5431,13 +5443,16 @@ var $author$project$Main$view = function (model) {
 			]),
 		_List_fromArray(
 			[
-				$author$project$Main$dateField(model),
+				$author$project$Main$dateField(model.date),
 				$author$project$Main$submitButton
 			]));
 };
 var $author$project$Main$main = $elm$browser$Browser$sandbox(
 	{
-		init: {date: '', dateValidtion: $author$project$Main$EmptyDate},
+		init: {
+			date: A2($author$project$Main$DateField, '', $author$project$Main$EmptyDate),
+			dateRange: A6($author$project$Main$DateRange, '', '', $author$project$Main$EmptyDate, $author$project$Main$EmptyDate, $author$project$Main$EmptyDateRange, $author$project$Main$NoField)
+		},
 		update: $author$project$Main$update,
 		view: $author$project$Main$view
 	});
