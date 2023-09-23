@@ -26,17 +26,16 @@ type LastEditedDateRangeField
   | NoField
 
 type alias DateRange = 
-  {  startDate : String 
-   , endDate : String 
-   , startDateValidation : DateStatus
-   , endDateValidation : DateStatus
+  {  startDate : DateField
+   , endDate : DateField
    , dateRangeValidation : DateRangeValidation
    , lastEdited : LastEditedDateRangeField
   }
 
 type alias DateField = 
   { value : String
-  , dateValidtion: DateStatus}
+  , dateValidation : DateStatus
+  , onClick : (String -> Msg)}
 
 type alias Model =
   { date : DateField
@@ -45,11 +44,12 @@ type alias Model =
 
 type Msg 
   = UpdateDate String
+  | UpdateStartDate String
+  | UpdateEndDate String
 
 isValidDateFormat: String -> Bool
 isValidDateFormat s =
   Regex.contains (Maybe.withDefault Regex.never <| Regex.fromString "[\\d]{4}\\-[\\d]{2}\\-[\\d]{2}" ) s
-
 
 validateDate: String -> DateStatus 
 validateDate date =
@@ -68,24 +68,42 @@ update : Msg -> Model -> Model
 update msg model =
   case msg of
     UpdateDate newDate -> 
-      { model | date = DateField newDate (validateDate newDate)}
+      { model | date = DateField newDate (validateDate newDate) model.date.onClick }
+
+    UpdateStartDate newDate -> 
+      let 
+          dateRangeOld = model.dateRange
+          oldStartDate = dateRangeOld.startDate 
+          newStartDate = {oldStartDate | value = newDate, dateValidation = (validateDate newDate)}
+          dateRangeNew = {dateRangeOld | startDate = newStartDate} 
+      in
+      { model | dateRange = dateRangeNew}
+    UpdateEndDate newDate -> 
+      let 
+          dateRangeOld = model.dateRange
+          oldEndDate = dateRangeOld.endDate 
+          newEndDate = {oldEndDate | value = newDate, dateValidation = (validateDate newDate)}
+          dateRangeNew = {dateRangeOld | endDate = newEndDate} 
+      in
+      { model | dateRange = dateRangeNew}
 
 dateField: DateField -> Html Msg
 dateField datefield =
   div [] 
       [input [placeholder "YYYY-MM-DD"
              , class "input"
-             , onInput UpdateDate
+             , onInput datefield.onClick
              , value datefield.value] [],
-       p [class "help is-danger"][ if datefield.dateValidtion == InvalidDateFormat then text "InvalidDateFormat, use YYYY-MM-DD" 
+       p [class "help is-danger"][ if datefield.dateValidation == InvalidDateFormat then text "InvalidDateFormat, use YYYY-MM-DD" 
              else text ""]]
 
-dateRange: Model -> Html Msg
+dateRange: DateRange -> Html Msg
 dateRange model = 
   div [class "my-6 is-flex is-align-items-center"] 
   [p [class "pr-3"] [text "from"]
-  , span [class "pr-3"] 
-         []]
+  , span [class "pr-3"] [dateField model.startDate]
+  , p [class "pr-3"] [text "from"]
+  , span [class "pr-3"] [dateField model.endDate]] 
 
 
 
@@ -94,13 +112,14 @@ submitButton =
 
 view model =
   div [class "container"]
-  [  dateField model.date
-  ,  submitButton]
+  [ dateField model.date
+  , dateRange model.dateRange
+  , submitButton]
 
 
 main =
-  Browser.sandbox {  init = { date = DateField "" EmptyDate
-                            , dateRange = DateRange "" "" EmptyDate EmptyDate EmptyDateRange NoField
+  Browser.sandbox {  init = { date = DateField "" EmptyDate UpdateDate
+                             , dateRange = DateRange (DateField "" EmptyDate  UpdateStartDate) (DateField "" EmptyDate  UpdateEndDate)  EmptyDateRange NoField
                             }
                    , update = update
                    , view = view}

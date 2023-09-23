@@ -4471,17 +4471,26 @@ var _Regex_splitAtMost = F3(function(n, re, str)
 });
 
 var _Regex_infinity = Infinity;
-var $author$project$Main$DateField = F2(
-	function (value, dateValidtion) {
-		return {dateValidtion: dateValidtion, value: value};
+var $author$project$Main$DateField = F3(
+	function (value, dateValidation, onClick) {
+		return {dateValidation: dateValidation, onClick: onClick, value: value};
 	});
-var $author$project$Main$DateRange = F6(
-	function (startDate, endDate, startDateValidation, endDateValidation, dateRangeValidation, lastEdited) {
-		return {dateRangeValidation: dateRangeValidation, endDate: endDate, endDateValidation: endDateValidation, lastEdited: lastEdited, startDate: startDate, startDateValidation: startDateValidation};
+var $author$project$Main$DateRange = F4(
+	function (startDate, endDate, dateRangeValidation, lastEdited) {
+		return {dateRangeValidation: dateRangeValidation, endDate: endDate, lastEdited: lastEdited, startDate: startDate};
 	});
 var $author$project$Main$EmptyDate = {$: 'EmptyDate'};
 var $author$project$Main$EmptyDateRange = {$: 'EmptyDateRange'};
 var $author$project$Main$NoField = {$: 'NoField'};
+var $author$project$Main$UpdateDate = function (a) {
+	return {$: 'UpdateDate', a: a};
+};
+var $author$project$Main$UpdateEndDate = function (a) {
+	return {$: 'UpdateEndDate', a: a};
+};
+var $author$project$Main$UpdateStartDate = function (a) {
+	return {$: 'UpdateStartDate', a: a};
+};
 var $elm$core$Basics$EQ = {$: 'EQ'};
 var $elm$core$Basics$GT = {$: 'GT'};
 var $elm$core$Basics$LT = {$: 'LT'};
@@ -5332,15 +5341,51 @@ var $author$project$Main$validateDate = function (date) {
 };
 var $author$project$Main$update = F2(
 	function (msg, model) {
-		var newDate = msg.a;
-		return _Utils_update(
-			model,
-			{
-				date: A2(
-					$author$project$Main$DateField,
-					newDate,
-					$author$project$Main$validateDate(newDate))
-			});
+		switch (msg.$) {
+			case 'UpdateDate':
+				var newDate = msg.a;
+				return _Utils_update(
+					model,
+					{
+						date: A3(
+							$author$project$Main$DateField,
+							newDate,
+							$author$project$Main$validateDate(newDate),
+							model.date.onClick)
+					});
+			case 'UpdateStartDate':
+				var newDate = msg.a;
+				var dateRangeOld = model.dateRange;
+				var oldStartDate = dateRangeOld.startDate;
+				var newStartDate = _Utils_update(
+					oldStartDate,
+					{
+						dateValidation: $author$project$Main$validateDate(newDate),
+						value: newDate
+					});
+				var dateRangeNew = _Utils_update(
+					dateRangeOld,
+					{startDate: newStartDate});
+				return _Utils_update(
+					model,
+					{dateRange: dateRangeNew});
+			default:
+				var newDate = msg.a;
+				var dateRangeOld = model.dateRange;
+				var oldEndDate = dateRangeOld.endDate;
+				var newEndDate = _Utils_update(
+					oldEndDate,
+					{
+						dateValidation: $author$project$Main$validateDate(newDate),
+						value: newDate
+					});
+				var dateRangeNew = _Utils_update(
+					dateRangeOld,
+					{endDate: newEndDate});
+				return _Utils_update(
+					model,
+					{dateRange: dateRangeNew});
+		}
 	});
 var $elm$json$Json$Encode$string = _Json_wrap;
 var $elm$html$Html$Attributes$stringProperty = F2(
@@ -5351,9 +5396,6 @@ var $elm$html$Html$Attributes$stringProperty = F2(
 			$elm$json$Json$Encode$string(string));
 	});
 var $elm$html$Html$Attributes$class = $elm$html$Html$Attributes$stringProperty('className');
-var $author$project$Main$UpdateDate = function (a) {
-	return {$: 'UpdateDate', a: a};
-};
 var $elm$html$Html$div = _VirtualDom_node('div');
 var $elm$html$Html$input = _VirtualDom_node('input');
 var $elm$html$Html$Events$alwaysStop = function (x) {
@@ -5407,7 +5449,7 @@ var $author$project$Main$dateField = function (datefield) {
 					[
 						$elm$html$Html$Attributes$placeholder('YYYY-MM-DD'),
 						$elm$html$Html$Attributes$class('input'),
-						$elm$html$Html$Events$onInput($author$project$Main$UpdateDate),
+						$elm$html$Html$Events$onInput(datefield.onClick),
 						$elm$html$Html$Attributes$value(datefield.value)
 					]),
 				_List_Nil),
@@ -5419,7 +5461,59 @@ var $author$project$Main$dateField = function (datefield) {
 					]),
 				_List_fromArray(
 					[
-						_Utils_eq(datefield.dateValidtion, $author$project$Main$InvalidDateFormat) ? $elm$html$Html$text('InvalidDateFormat, use YYYY-MM-DD') : $elm$html$Html$text('')
+						_Utils_eq(datefield.dateValidation, $author$project$Main$InvalidDateFormat) ? $elm$html$Html$text('InvalidDateFormat, use YYYY-MM-DD') : $elm$html$Html$text('')
+					]))
+			]));
+};
+var $elm$html$Html$span = _VirtualDom_node('span');
+var $author$project$Main$dateRange = function (model) {
+	return A2(
+		$elm$html$Html$div,
+		_List_fromArray(
+			[
+				$elm$html$Html$Attributes$class('my-6 is-flex is-align-items-center')
+			]),
+		_List_fromArray(
+			[
+				A2(
+				$elm$html$Html$p,
+				_List_fromArray(
+					[
+						$elm$html$Html$Attributes$class('pr-3')
+					]),
+				_List_fromArray(
+					[
+						$elm$html$Html$text('from')
+					])),
+				A2(
+				$elm$html$Html$span,
+				_List_fromArray(
+					[
+						$elm$html$Html$Attributes$class('pr-3')
+					]),
+				_List_fromArray(
+					[
+						$author$project$Main$dateField(model.startDate)
+					])),
+				A2(
+				$elm$html$Html$p,
+				_List_fromArray(
+					[
+						$elm$html$Html$Attributes$class('pr-3')
+					]),
+				_List_fromArray(
+					[
+						$elm$html$Html$text('from')
+					])),
+				A2(
+				$elm$html$Html$span,
+				_List_fromArray(
+					[
+						$elm$html$Html$Attributes$class('pr-3')
+					]),
+				_List_fromArray(
+					[
+						$author$project$Main$dateField(model.endDate)
 					]))
 			]));
 };
@@ -5444,14 +5538,20 @@ var $author$project$Main$view = function (model) {
 		_List_fromArray(
 			[
 				$author$project$Main$dateField(model.date),
+				$author$project$Main$dateRange(model.dateRange),
 				$author$project$Main$submitButton
 			]));
 };
 var $author$project$Main$main = $elm$browser$Browser$sandbox(
 	{
 		init: {
-			date: A2($author$project$Main$DateField, '', $author$project$Main$EmptyDate),
-			dateRange: A6($author$project$Main$DateRange, '', '', $author$project$Main$EmptyDate, $author$project$Main$EmptyDate, $author$project$Main$EmptyDateRange, $author$project$Main$NoField)
+			date: A3($author$project$Main$DateField, '', $author$project$Main$EmptyDate, $author$project$Main$UpdateDate),
+			dateRange: A4(
+				$author$project$Main$DateRange,
+				A3($author$project$Main$DateField, '', $author$project$Main$EmptyDate, $author$project$Main$UpdateStartDate),
+				A3($author$project$Main$DateField, '', $author$project$Main$EmptyDate, $author$project$Main$UpdateEndDate),
+				$author$project$Main$EmptyDateRange,
+				$author$project$Main$NoField)
 		},
 		update: $author$project$Main$update,
 		view: $author$project$Main$view
