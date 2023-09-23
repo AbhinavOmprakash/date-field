@@ -4471,9 +4471,9 @@ var _Regex_splitAtMost = F3(function(n, re, str)
 });
 
 var _Regex_infinity = Infinity;
-var $author$project$Main$DateField = F3(
-	function (value, dateValidation, onClick) {
-		return {dateValidation: dateValidation, onClick: onClick, value: value};
+var $author$project$Main$DateField = F4(
+	function (value, dateValidation, onClick, message) {
+		return {dateValidation: dateValidation, message: message, onClick: onClick, value: value};
 	});
 var $author$project$Main$DateRange = F4(
 	function (startDate, endDate, dateRangeValidation, lastEdited) {
@@ -4491,6 +4491,7 @@ var $author$project$Main$UpdateEndDate = function (a) {
 var $author$project$Main$UpdateStartDate = function (a) {
 	return {$: 'UpdateStartDate', a: a};
 };
+var $author$project$Main$defaultDateFieldMsg = 'InvalidDateFormat, use YYYY-MM-DD';
 var $elm$core$Basics$EQ = {$: 'EQ'};
 var $elm$core$Basics$GT = {$: 'GT'};
 var $elm$core$Basics$LT = {$: 'LT'};
@@ -5301,6 +5302,9 @@ var $elm$browser$Browser$sandbox = function (impl) {
 			view: impl.view
 		});
 };
+var $elm$core$Debug$log = _Debug_log;
+var $author$project$Main$InvalidDateRange = {$: 'InvalidDateRange'};
+var $author$project$Main$InvalidDateWithCustomMsg = {$: 'InvalidDateWithCustomMsg'};
 var $author$project$Main$InvalidDateFormat = {$: 'InvalidDateFormat'};
 var $author$project$Main$ValidDate = {$: 'ValidDate'};
 var $elm$regex$Regex$Match = F4(
@@ -5339,14 +5343,18 @@ var $author$project$Main$validateDate = function (date) {
 	var dateStatus = (date === '') ? $author$project$Main$EmptyDate : ((!$author$project$Main$isValidDateFormat(date)) ? $author$project$Main$InvalidDateFormat : $author$project$Main$ValidDate);
 	return dateStatus;
 };
-var $author$project$Main$InvalidDateRange = {$: 'InvalidDateRange'};
 var $author$project$Main$ValidDateRange = {$: 'ValidDateRange'};
 var $author$project$Main$ValidatingDateFields = {$: 'ValidatingDateFields'};
 var $author$project$Main$validateDateRange = F2(
 	function (startDate, endDate) {
-		var startDateValid = _Utils_eq(startDate.dateValidation, $author$project$Main$ValidDate);
-		var endDateValid = _Utils_eq(endDate.dateValidation, $author$project$Main$ValidDate);
-		var validRange = (startDateValid && endDateValid) ? (_Utils_cmp(startDate.value, endDate.value) < 1) : true;
+		var startDateValid = A2(
+			$elm$core$Debug$log,
+			'startDateValid ',
+			_Utils_eq(startDate.dateValidation, $author$project$Main$ValidDate));
+		var endDateValid = A2(
+			$elm$core$Debug$log,
+			'endDateValid',
+			_Utils_eq(endDate.dateValidation, $author$project$Main$ValidDate));
 		return (startDateValid && endDateValid) ? ((_Utils_cmp(startDate.value, endDate.value) < 1) ? $author$project$Main$ValidDateRange : $author$project$Main$InvalidDateRange) : $author$project$Main$ValidatingDateFields;
 	});
 var $author$project$Main$updateEndDate = F2(
@@ -5357,32 +5365,51 @@ var $author$project$Main$updateEndDate = F2(
 			oldEndDate,
 			{
 				dateValidation: $author$project$Main$validateDate(newDate),
+				message: $author$project$Main$defaultDateFieldMsg,
 				value: newDate
 			});
+		var newEndDateNew = A2(
+			$elm$core$Debug$log,
+			'newEndDateNew ',
+			_Utils_update(
+				newEndDate,
+				{dateValidation: $author$project$Main$InvalidDateWithCustomMsg, message: 'End date can\'t be before start date'}));
 		var dateRangeNew = _Utils_update(
 			dateRangeOld,
 			{
 				dateRangeValidation: A2($author$project$Main$validateDateRange, dateRangeOld.startDate, newEndDate),
 				endDate: newEndDate
 			});
-		return dateRangeNew;
+		var dateRangeNewNew = _Utils_eq(dateRangeNew.dateRangeValidation, $author$project$Main$InvalidDateRange) ? _Utils_update(
+			daterange,
+			{endDate: newEndDateNew}) : dateRangeNew;
+		return dateRangeNewNew;
 	});
 var $author$project$Main$updateStartDate = F2(
 	function (newDate, daterange) {
-		var oldStartDate = daterange.startDate;
+		var dateRangeOld = daterange;
+		var oldStartDate = dateRangeOld.startDate;
 		var newStartDate = _Utils_update(
 			oldStartDate,
 			{
 				dateValidation: $author$project$Main$validateDate(newDate),
+				message: $author$project$Main$defaultDateFieldMsg,
 				value: newDate
 			});
 		var dateRangeNew = _Utils_update(
 			daterange,
 			{
-				dateRangeValidation: A2($author$project$Main$validateDateRange, daterange.startDate, newStartDate),
+				dateRangeValidation: A2($author$project$Main$validateDateRange, newStartDate, dateRangeOld.endDate),
 				startDate: newStartDate
 			});
-		return dateRangeNew;
+		var dateRangeNewNew = _Utils_eq(dateRangeNew.dateRangeValidation, $author$project$Main$InvalidDateRange) ? _Utils_update(
+			dateRangeNew,
+			{
+				startDate: _Utils_update(
+					newStartDate,
+					{dateValidation: $author$project$Main$InvalidDateWithCustomMsg, message: 'Start date can\'t be after end date'})
+			}) : dateRangeNew;
+		return A2($elm$core$Debug$log, 'dateRangeNewNew', dateRangeNewNew);
 	});
 var $author$project$Main$update = F2(
 	function (msg, model) {
@@ -5392,26 +5419,33 @@ var $author$project$Main$update = F2(
 				return _Utils_update(
 					model,
 					{
-						date: A3(
+						date: A4(
 							$author$project$Main$DateField,
 							newDate,
 							$author$project$Main$validateDate(newDate),
-							model.date.onClick)
+							model.date.onClick,
+							model.date.message)
 					});
 			case 'UpdateStartDate':
 				var newDate = msg.a;
-				return _Utils_update(
-					model,
-					{
-						dateRange: A2($author$project$Main$updateStartDate, newDate, model.dateRange)
-					});
+				return A2(
+					$elm$core$Debug$log,
+					'UpdateStartDate ',
+					_Utils_update(
+						model,
+						{
+							dateRange: A2($author$project$Main$updateStartDate, newDate, model.dateRange)
+						}));
 			default:
 				var newDate = msg.a;
-				return _Utils_update(
-					model,
-					{
-						dateRange: A2($author$project$Main$updateEndDate, newDate, model.dateRange)
-					});
+				return A2(
+					$elm$core$Debug$log,
+					'UpdateEndDate ',
+					_Utils_update(
+						model,
+						{
+							dateRange: A2($author$project$Main$updateEndDate, newDate, model.dateRange)
+						}));
 		}
 	});
 var $elm$json$Json$Encode$string = _Json_wrap;
@@ -5488,7 +5522,7 @@ var $author$project$Main$dateField = function (datefield) {
 					]),
 				_List_fromArray(
 					[
-						_Utils_eq(datefield.dateValidation, $author$project$Main$InvalidDateFormat) ? $elm$html$Html$text('InvalidDateFormat, use YYYY-MM-DD') : $elm$html$Html$text('')
+						(_Utils_eq(datefield.dateValidation, $author$project$Main$InvalidDateFormat) || _Utils_eq(datefield.dateValidation, $author$project$Main$InvalidDateWithCustomMsg)) ? $elm$html$Html$text(datefield.message) : $elm$html$Html$text('')
 					]))
 			]));
 };
@@ -5572,11 +5606,11 @@ var $author$project$Main$view = function (model) {
 var $author$project$Main$main = $elm$browser$Browser$sandbox(
 	{
 		init: {
-			date: A3($author$project$Main$DateField, '', $author$project$Main$EmptyDate, $author$project$Main$UpdateDate),
+			date: A4($author$project$Main$DateField, '', $author$project$Main$EmptyDate, $author$project$Main$UpdateDate, $author$project$Main$defaultDateFieldMsg),
 			dateRange: A4(
 				$author$project$Main$DateRange,
-				A3($author$project$Main$DateField, '', $author$project$Main$EmptyDate, $author$project$Main$UpdateStartDate),
-				A3($author$project$Main$DateField, '', $author$project$Main$EmptyDate, $author$project$Main$UpdateEndDate),
+				A4($author$project$Main$DateField, '', $author$project$Main$EmptyDate, $author$project$Main$UpdateStartDate, $author$project$Main$defaultDateFieldMsg),
+				A4($author$project$Main$DateField, '', $author$project$Main$EmptyDate, $author$project$Main$UpdateEndDate, $author$project$Main$defaultDateFieldMsg),
 				$author$project$Main$EmptyDateRange,
 				$author$project$Main$NoField)
 		},

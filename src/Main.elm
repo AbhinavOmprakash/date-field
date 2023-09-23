@@ -36,7 +36,10 @@ type alias DateRange =
 type alias DateField = 
   { value : String
   , dateValidation : DateStatus
-  , onClick : (String -> Msg)}
+  , onClick : (String -> Msg)
+  , message : String}
+
+defaultDateFieldMsg = "InvalidDateFormat, use YYYY-MM-DD" 
 
 type alias Model =
   { date : DateField
@@ -68,11 +71,8 @@ validateDate date =
 validateDateRange: DateField -> DateField -> DateRangeValidation
 validateDateRange startDate endDate  =
   let 
-      startDateValid = (startDate.dateValidation == ValidDate)
-      endDateValid = (endDate.dateValidation == ValidDate)
-      validRange = (if (startDateValid && endDateValid) 
-                       then (startDate.value <= endDate.value) 
-                       else True)
+      startDateValid = log "startDateValid "(startDate.dateValidation == ValidDate)
+      endDateValid = log "endDateValid" (endDate.dateValidation == ValidDate)
   in 
   if (startDateValid && endDateValid) 
       then 
@@ -84,33 +84,42 @@ validateDateRange startDate endDate  =
 updateStartDate : String -> DateRange -> DateRange
 updateStartDate newDate daterange =
     let     
-        oldStartDate =  daterange.startDate 
-        newStartDate = { oldStartDate | value = newDate, dateValidation = (validateDate newDate)}
-        dateRangeNew = { daterange | startDate = newStartDate, dateRangeValidation = (validateDateRange daterange.startDate newStartDate)} 
+        dateRangeOld = daterange
+        oldStartDate = dateRangeOld.startDate 
+        newStartDate = { oldStartDate | value = newDate, dateValidation = (validateDate newDate), message = defaultDateFieldMsg}
+        dateRangeNew = { daterange | startDate = newStartDate, dateRangeValidation = (validateDateRange  newStartDate dateRangeOld.endDate)} 
+        -- need to find a better name 
+        dateRangeNewNew = (if dateRangeNew.dateRangeValidation == InvalidDateRange 
+                        then {dateRangeNew | startDate = {newStartDate | message = "Start date can't be after end date", dateValidation = InvalidDateWithCustomMsg }}
+                        else dateRangeNew)
       in
-       dateRangeNew
+       log "dateRangeNewNew" dateRangeNewNew
 
 updateEndDate : String -> DateRange -> DateRange
 updateEndDate newDate daterange =
       let 
           dateRangeOld = daterange
           oldEndDate = dateRangeOld.endDate 
-          newEndDate = {oldEndDate | value = newDate, dateValidation = (validateDate newDate)}
+          newEndDate = {oldEndDate | value = newDate, dateValidation = (validateDate newDate), message = defaultDateFieldMsg}
           dateRangeNew = {dateRangeOld | endDate = newEndDate, dateRangeValidation = (validateDateRange dateRangeOld.startDate newEndDate)} 
+          newEndDateNew = log "newEndDateNew " {newEndDate | message = "End date can't be before start date", dateValidation = InvalidDateWithCustomMsg }
+          dateRangeNewNew = (if dateRangeNew.dateRangeValidation == InvalidDateRange 
+                              then {daterange | endDate = newEndDateNew }
+                              else dateRangeNew)
       in
-      dateRangeNew 
+      dateRangeNewNew
 
 update : Msg -> Model -> Model 
 update msg model =
   case msg of
     UpdateDate newDate -> 
-      { model | date = DateField newDate (validateDate newDate) model.date.onClick }
+      { model | date = DateField newDate (validateDate newDate) model.date.onClick model.date.message}
 
     UpdateStartDate newDate -> 
-      {model | dateRange = (updateStartDate newDate model.dateRange)}
+      log "UpdateStartDate "{model | dateRange = (updateStartDate newDate model.dateRange)}
 
     UpdateEndDate newDate -> 
-      {model | dateRange = (updateEndDate newDate model.dateRange)}
+      log "UpdateEndDate " {model | dateRange = (updateEndDate newDate model.dateRange)}
 
 dateField: DateField -> Html Msg
 dateField datefield =
@@ -119,7 +128,10 @@ dateField datefield =
              , class "input"
              , onInput datefield.onClick
              , value datefield.value] [],
-       p [class "help is-danger"][ if datefield.dateValidation == InvalidDateFormat then text "InvalidDateFormat, use YYYY-MM-DD" 
+       p [class "help is-danger"]
+       [ 
+             if ((datefield.dateValidation == InvalidDateFormat) || (datefield.dateValidation ==  InvalidDateWithCustomMsg )) 
+             then text datefield.message
              else text ""]]
 
 dateRange: DateRange -> Html Msg
@@ -143,8 +155,11 @@ view model =
 
 
 main =
-  Browser.sandbox {  init = { date = DateField "" EmptyDate UpdateDate
-                             , dateRange = DateRange (DateField "" EmptyDate  UpdateStartDate) (DateField "" EmptyDate  UpdateEndDate)  EmptyDateRange NoField
+  Browser.sandbox {  init = { date = DateField "" EmptyDate UpdateDate defaultDateFieldMsg
+                             , dateRange = DateRange (DateField "" EmptyDate  UpdateStartDate defaultDateFieldMsg) 
+                                                     (DateField "" EmptyDate  UpdateEndDate defaultDateFieldMsg)  
+                                                     EmptyDateRange 
+                                                     NoField
                             }
                    , update = update
                    , view = view}
