@@ -4471,27 +4471,34 @@ var _Regex_splitAtMost = F3(function(n, re, str)
 });
 
 var _Regex_infinity = Infinity;
+var $author$project$Main$UpdateDate = function (a) {
+	return {$: 'UpdateDate', a: a};
+};
 var $author$project$Main$DateField = F4(
 	function (value, dateValidation, onClick, message) {
 		return {dateValidation: dateValidation, message: message, onClick: onClick, value: value};
 	});
-var $author$project$Main$DateRange = F4(
-	function (startDate, endDate, dateRangeValidation, lastEdited) {
-		return {dateRangeValidation: dateRangeValidation, endDate: endDate, lastEdited: lastEdited, startDate: startDate};
-	});
 var $author$project$Main$EmptyDate = {$: 'EmptyDate'};
-var $author$project$Main$EmptyDateRange = {$: 'EmptyDateRange'};
-var $author$project$Main$NoField = {$: 'NoField'};
-var $author$project$Main$UpdateDate = function (a) {
-	return {$: 'UpdateDate', a: a};
+var $author$project$Main$defaultDateFieldMsg = 'InvalidDateFormat, use YYYY-MM-DD';
+var $author$project$Main$defaultDateField = function (onClickFn) {
+	return A4($author$project$Main$DateField, '', $author$project$Main$EmptyDate, onClickFn, $author$project$Main$defaultDateFieldMsg);
 };
+var $author$project$Main$DateRange = F3(
+	function (startDate, endDate, dateRangeValidation) {
+		return {dateRangeValidation: dateRangeValidation, endDate: endDate, startDate: startDate};
+	});
+var $author$project$Main$EmptyDateRange = {$: 'EmptyDateRange'};
 var $author$project$Main$UpdateEndDate = function (a) {
 	return {$: 'UpdateEndDate', a: a};
 };
 var $author$project$Main$UpdateStartDate = function (a) {
 	return {$: 'UpdateStartDate', a: a};
 };
-var $author$project$Main$defaultDateFieldMsg = 'InvalidDateFormat, use YYYY-MM-DD';
+var $author$project$Main$defaultDateRange = A3(
+	$author$project$Main$DateRange,
+	$author$project$Main$defaultDateField($author$project$Main$UpdateStartDate),
+	$author$project$Main$defaultDateField($author$project$Main$UpdateEndDate),
+	$author$project$Main$EmptyDateRange);
 var $elm$core$Basics$EQ = {$: 'EQ'};
 var $elm$core$Basics$GT = {$: 'GT'};
 var $elm$core$Basics$LT = {$: 'LT'};
@@ -5302,7 +5309,6 @@ var $elm$browser$Browser$sandbox = function (impl) {
 			view: impl.view
 		});
 };
-var $elm$core$Debug$log = _Debug_log;
 var $author$project$Main$InvalidDateRange = {$: 'InvalidDateRange'};
 var $author$project$Main$InvalidDateWithCustomMsg = {$: 'InvalidDateWithCustomMsg'};
 var $author$project$Main$InvalidDateFormat = {$: 'InvalidDateFormat'};
@@ -5345,6 +5351,7 @@ var $author$project$Main$validateDate = function (date) {
 };
 var $author$project$Main$ValidDateRange = {$: 'ValidDateRange'};
 var $author$project$Main$ValidatingDateFields = {$: 'ValidatingDateFields'};
+var $elm$core$Debug$log = _Debug_log;
 var $author$project$Main$validateDateRange = F2(
 	function (startDate, endDate) {
 		var startDateValid = A2(
@@ -5368,12 +5375,9 @@ var $author$project$Main$updateEndDate = F2(
 				message: $author$project$Main$defaultDateFieldMsg,
 				value: newDate
 			});
-		var newEndDateNew = A2(
-			$elm$core$Debug$log,
-			'newEndDateNew ',
-			_Utils_update(
-				newEndDate,
-				{dateValidation: $author$project$Main$InvalidDateWithCustomMsg, message: 'End date can\'t be before start date'}));
+		var newEndDateNew = _Utils_update(
+			newEndDate,
+			{dateValidation: $author$project$Main$InvalidDateWithCustomMsg, message: 'End date can\'t be before start date'});
 		var dateRangeNew = _Utils_update(
 			dateRangeOld,
 			{
@@ -5428,24 +5432,25 @@ var $author$project$Main$update = F2(
 					});
 			case 'UpdateStartDate':
 				var newDate = msg.a;
-				return A2(
-					$elm$core$Debug$log,
-					'UpdateStartDate ',
-					_Utils_update(
-						model,
-						{
-							dateRange: A2($author$project$Main$updateStartDate, newDate, model.dateRange)
-						}));
-			default:
+				return _Utils_update(
+					model,
+					{
+						dateRange: A2($author$project$Main$updateStartDate, newDate, model.dateRange)
+					});
+			case 'UpdateEndDate':
 				var newDate = msg.a;
-				return A2(
-					$elm$core$Debug$log,
-					'UpdateEndDate ',
-					_Utils_update(
-						model,
-						{
-							dateRange: A2($author$project$Main$updateEndDate, newDate, model.dateRange)
-						}));
+				return _Utils_update(
+					model,
+					{
+						dateRange: A2($author$project$Main$updateEndDate, newDate, model.dateRange)
+					});
+			default:
+				return _Utils_update(
+					model,
+					{
+						date: $author$project$Main$defaultDateField($author$project$Main$UpdateDate),
+						dateRange: $author$project$Main$defaultDateRange
+					});
 		}
 	});
 var $elm$json$Json$Encode$string = _Json_wrap;
@@ -5578,12 +5583,30 @@ var $author$project$Main$dateRange = function (model) {
 					]))
 			]));
 };
+var $author$project$Main$SubmitFormData = {$: 'SubmitFormData'};
 var $elm$html$Html$button = _VirtualDom_node('button');
+var $elm$virtual_dom$VirtualDom$Normal = function (a) {
+	return {$: 'Normal', a: a};
+};
+var $elm$html$Html$Events$on = F2(
+	function (event, decoder) {
+		return A2(
+			$elm$virtual_dom$VirtualDom$on,
+			event,
+			$elm$virtual_dom$VirtualDom$Normal(decoder));
+	});
+var $elm$html$Html$Events$onClick = function (msg) {
+	return A2(
+		$elm$html$Html$Events$on,
+		'click',
+		$elm$json$Json$Decode$succeed(msg));
+};
 var $author$project$Main$submitButton = A2(
 	$elm$html$Html$button,
 	_List_fromArray(
 		[
-			$elm$html$Html$Attributes$class('button is-dark')
+			$elm$html$Html$Attributes$class('button is-dark'),
+			$elm$html$Html$Events$onClick($author$project$Main$SubmitFormData)
 		]),
 	_List_fromArray(
 		[
@@ -5606,13 +5629,8 @@ var $author$project$Main$view = function (model) {
 var $author$project$Main$main = $elm$browser$Browser$sandbox(
 	{
 		init: {
-			date: A4($author$project$Main$DateField, '', $author$project$Main$EmptyDate, $author$project$Main$UpdateDate, $author$project$Main$defaultDateFieldMsg),
-			dateRange: A4(
-				$author$project$Main$DateRange,
-				A4($author$project$Main$DateField, '', $author$project$Main$EmptyDate, $author$project$Main$UpdateStartDate, $author$project$Main$defaultDateFieldMsg),
-				A4($author$project$Main$DateField, '', $author$project$Main$EmptyDate, $author$project$Main$UpdateEndDate, $author$project$Main$defaultDateFieldMsg),
-				$author$project$Main$EmptyDateRange,
-				$author$project$Main$NoField)
+			date: $author$project$Main$defaultDateField($author$project$Main$UpdateDate),
+			dateRange: $author$project$Main$defaultDateRange
 		},
 		update: $author$project$Main$update,
 		view: $author$project$Main$view
