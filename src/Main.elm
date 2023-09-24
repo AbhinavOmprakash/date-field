@@ -2,7 +2,7 @@ module Main exposing (..)
 
 import Browser
 import Debug exposing (log)
-import Html exposing (Html, button, div, input, p, span, text)
+import Html exposing (Html, button, div, h1, input, p, span, text)
 import Html.Attributes exposing (class, disabled, placeholder, value)
 import Html.Events exposing (onClick, onInput)
 import Regex
@@ -250,9 +250,12 @@ submitButton isDisabled =
 
 view model =
     div [ class "container" ]
-        [ dateField model.date
-        , dateRange model.dateRange
-        , submitButton (not (model.formValidation == ValidForm))
+        [ h1 [ class "title" ] [ text "Written in Elm" ]
+        , div [ class "container" ]
+            [ dateField model.date
+            , dateRange model.dateRange
+            , submitButton (not (model.formValidation == ValidForm))
+            ]
         ]
 
 
