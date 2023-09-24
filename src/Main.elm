@@ -22,12 +22,6 @@ type DateRangeValidation
     | ValidatingDateFields
 
 
-type LastEditedDateRangeField
-    = StartDate
-    | EndDate
-    | NoField
-
-
 type alias DateRange =
     { startDate : DateField
     , endDate : DateField
