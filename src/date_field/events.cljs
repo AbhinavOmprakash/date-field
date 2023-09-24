@@ -50,9 +50,6 @@
       (boolean (re-matches #"[\d]{2}\-[\d]{2}\-[\d]{4}" date))))
 
 
-(def default-datefield-message "incorrect input date format, use DD-MM-YYYY")
-
-
 (defn update-datefield
   [_ new-date date-validation message]
   {:value new-date
